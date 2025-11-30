@@ -46,10 +46,16 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     // Si recibimos un 401 (no autorizado), limpiar el token y redirigir
+    // EXCEPTO en el endpoint de login, donde queremos mostrar el mensaje de error
     if (error.response?.status === 401) {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("token");
-        window.location.href = "/login";
+      const isLoginEndpoint = error.config?.url?.includes("/auth/login");
+      
+      // No redirigir en login para permitir que el componente maneje el error
+      if (!isLoginEndpoint) {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+        }
       }
     }
     

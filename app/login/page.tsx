@@ -135,20 +135,29 @@ function LoginForm() {
       // NO redirigir ni recargar en caso de error
       const apiError: ApiError = err;
       
-      // Manejar específicamente el error 401 (credenciales inválidas)
+      // Extraer el mensaje del backend (puede incluir información sobre bloqueo)
       let errorMessage = "Credenciales inválidas. Verifica tu email y contraseña.";
       
-      if (apiError.statusCode === 401) {
-        errorMessage = "Correo o contraseña incorrectos.";
-      } else if (Array.isArray(apiError.message)) {
+      // Priorizar el mensaje del backend que puede incluir detalles del bloqueo
+      if (Array.isArray(apiError.message)) {
         errorMessage = apiError.message.join(", ");
       } else if (apiError.message) {
         errorMessage = apiError.message;
+      } else if (apiError.statusCode === 401) {
+        // Si es 401 pero no hay mensaje específico, usar mensaje genérico
+        errorMessage = "Correo o contraseña incorrectos.";
       }
       
-      // Mostrar toast con duración mínima de 3 segundos
+      // Detectar si es un mensaje de bloqueo para mostrar duración más larga
+      const isBlockedMessage = errorMessage.toLowerCase().includes("bloqueada") || 
+                               errorMessage.toLowerCase().includes("bloqueado") ||
+                               errorMessage.toLowerCase().includes("intenta nuevamente");
+      
+      // Mostrar toast con duración más larga para mensajes de bloqueo
+      const toastDuration = isBlockedMessage ? 6000 : 3000; // 6 segundos para bloqueos, 3 para otros
+      
       toast.error(errorMessage, {
-        duration: 3000,
+        duration: toastDuration,
         position: "top-right",
       });
       
