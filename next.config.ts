@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' http://localhost:4000 https://*.netlify.app https://*.vercel.app",
+              "connect-src 'self' http://localhost:4000 https://*.netlify.app https://*.vercel.app https://*.vercel",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
