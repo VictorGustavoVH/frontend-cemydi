@@ -11,6 +11,30 @@ export interface User {
   updatedAt?: string;
 }
 
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  imageUrl?: string | null;
+  isRental: boolean;
+  rentalUnit?: string | null;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateProductRequest {
+  name: string;
+  description: string;
+  price: number;
+  isRental?: boolean;
+  rentalUnit?: string;
+  imageUrl?: string;
+}
+
+export interface UpdateProductRequest extends Partial<CreateProductRequest> {}
+
 export interface RegisterRequest {
   name: string;
   email: string;

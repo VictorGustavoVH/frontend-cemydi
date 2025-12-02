@@ -12,6 +12,9 @@ import type {
   AuthResponse,
   RegisterResponse,
   User,
+  Product,
+  CreateProductRequest,
+  UpdateProductRequest,
   ApiError,
   RequestPasswordResetRequest,
   RequestPasswordResetResponse,
@@ -81,6 +84,71 @@ export const exchangeOAuthCode = async (code: string): Promise<LoginResponse> =>
 export const getUsers = async (): Promise<User[]> => {
   try {
     const response = await apiClient.get<User[]>("/users");
+    return response.data;
+  } catch (error: any) {
+    throw formatApiError(error);
+  }
+};
+
+/**
+ * Obtiene la lista de productos activos para el catálogo
+ */
+export const getProducts = async (): Promise<Product[]> => {
+  try {
+    const response = await apiClient.get<Product[]>("/products");
+    return response.data;
+  } catch (error: any) {
+    throw formatApiError(error);
+  }
+};
+
+/**
+ * Obtiene el detalle de un producto por ID
+ */
+export const getProductById = async (id: string): Promise<Product> => {
+  try {
+    const response = await apiClient.get<Product>(`/products/${id}`);
+    return response.data;
+  } catch (error: any) {
+    throw formatApiError(error);
+  }
+};
+
+/**
+ * Crea un nuevo producto (requiere rol admin)
+ */
+export const createProduct = async (
+  data: CreateProductRequest
+): Promise<Product> => {
+  try {
+    const response = await apiClient.post<Product>("/products", data);
+    return response.data;
+  } catch (error: any) {
+    throw formatApiError(error);
+  }
+};
+
+/**
+ * Actualiza un producto existente (requiere rol admin)
+ */
+export const updateProduct = async (
+  id: string,
+  data: UpdateProductRequest
+): Promise<Product> => {
+  try {
+    const response = await apiClient.patch<Product>(`/products/${id}`, data);
+    return response.data;
+  } catch (error: any) {
+    throw formatApiError(error);
+  }
+};
+
+/**
+ * Elimina (desactiva) un producto (requiere rol admin)
+ */
+export const deleteProduct = async (id: string): Promise<{ message: string }> => {
+  try {
+    const response = await apiClient.delete<{ message: string }>(`/products/${id}`);
     return response.data;
   } catch (error: any) {
     throw formatApiError(error);
