@@ -181,7 +181,8 @@ export const isTokenExpired = (token: string | null): boolean => {
 };
 
 /**
- * Verifica si ha habido inactividad por más de 15 minutos
+ * Verifica si ha habido inactividad por más de X minutos
+ * (usado para decidir si se debe cerrar sesión por inactividad)
  */
 export const isInactive = (): boolean => {
   if (typeof window === "undefined") return false;
@@ -192,7 +193,8 @@ export const isInactive = (): boolean => {
   const lastActivityTime = parseInt(lastActivity, 10);
   const now = Date.now();
   const inactiveTime = now - lastActivityTime;
-  const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 15 minutos en milisegundos
+  // Tiempo máximo de inactividad antes de cerrar sesión (12 minutos)
+  const INACTIVITY_TIMEOUT = 12 * 60 * 1000;
   
   return inactiveTime > INACTIVITY_TIMEOUT;
 };

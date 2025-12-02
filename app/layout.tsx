@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Toaster } from "react-hot-toast";
+import InactivityMonitor from "@/components/InactivityMonitor";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -32,6 +33,7 @@ export default function RootLayout({
       <body
         className={`${montserrat.variable} ${inter.variable} antialiased flex flex-col min-h-screen`}
       >
+        <InactivityMonitor />
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

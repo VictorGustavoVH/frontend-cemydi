@@ -63,6 +63,19 @@ export const loginUser = async (data: LoginRequest): Promise<LoginResponse> => {
 };
 
 /**
+ * Intercambia un código OAuth de un solo uso por tokens JWT internos
+ * después de un login con Google (Authorization Code Flow).
+ */
+export const exchangeOAuthCode = async (code: string): Promise<LoginResponse> => {
+  try {
+    const response = await apiClient.post<LoginResponse>("/auth/oauth/exchange", { code });
+    return response.data;
+  } catch (error: any) {
+    throw formatApiError(error);
+  }
+};
+
+/**
  * Obtiene la lista de usuarios (requiere autenticación)
  */
 export const getUsers = async (): Promise<User[]> => {

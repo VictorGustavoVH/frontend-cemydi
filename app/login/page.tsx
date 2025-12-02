@@ -5,9 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { LogIn, Eye, EyeOff, Shield } from "lucide-react";
 import toast from "react-hot-toast";
-import { loginUser, verifyMfa } from "@/lib/api-requests";
+import { loginUser, verifyMfa, exchangeOAuthCode } from "@/lib/api-requests";
 import { saveToken, getUserRole } from "@/lib/auth";
 import type { ApiError } from "@/lib/types";
+import { API_URL_FINAL } from "@/lib/api";
 
 function LoginForm() {
   const router = useRouter();
@@ -23,11 +24,15 @@ function LoginForm() {
   const [requiresMfa, setRequiresMfa] = useState(false);
   const [mfaToken, setMfaToken] = useState<string | null>(null);
   const [totpCode, setTotpCode] = useState("");
+  const [isProcessingOAuth, setIsProcessingOAuth] = useState(false);
 
   // Mostrar mensaje si viene en los query params (éxito o error/información)
   useEffect(() => {
+    const oauthCode = searchParams.get("oauthCode");
+
     const message = searchParams.get("message");
-    if (message) {
+    // Si venimos de OAuth, NO mostrar el mensaje en el formulario, solo usaremos toast/redirección
+    if (message && !oauthCode) {
       const decodedMessage = decodeURIComponent(message);
       
       // Detectar si es un mensaje de sesión invalidada (mostrar como error)
@@ -49,6 +54,52 @@ function LoginForm() {
           setSuccessMessage(null);
         }, 5000);
       }
+    }
+
+    if (oauthCode && !isProcessingOAuth) {
+      setIsProcessingOAuth(true);
+
+      (async () => {
+        try {
+          const response = await exchangeOAuthCode(oauthCode as string);
+
+          // Guardar tokens igual que en el login normal
+          saveToken(response.access_token as string, response.refresh_token as string);
+
+          toast.success("Sesión iniciada con Google correctamente.", {
+            duration: 3000,
+            position: "top-right",
+          });
+
+          // Redirigir según el rol
+          const userRole = response.user?.role || getUserRole();
+          setTimeout(() => {
+            if (userRole === "admin") {
+              router.push("/users");
+            } else {
+              router.push("/");
+            }
+          }, 1000);
+        } catch (err: any) {
+          const apiError: ApiError = err;
+          let errorMessage = "No se pudo completar el inicio de sesión con Google.";
+
+          if (Array.isArray(apiError.message)) {
+            errorMessage = apiError.message.join(", ");
+          } else if (apiError.message) {
+            errorMessage = apiError.message;
+          }
+
+          toast.error(errorMessage, {
+            duration: 4000,
+            position: "top-right",
+          });
+
+          setError(errorMessage);
+        } finally {
+          setIsProcessingOAuth(false);
+        }
+      })();
     }
   }, [searchParams]);
 
@@ -147,6 +198,12 @@ function LoginForm() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    // Redirigir al flujo OAuth 2.0 del backend (Authorization Code Flow)
+    // Los tokens NUNCA irán en la URL; el backend maneja el intercambio de "code" por tokens.
+    window.location.href = `${API_URL_FINAL}/auth/oauth/google`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -429,6 +486,27 @@ function LoginForm() {
             >
               <LogIn className="w-4 h-4" />
               {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
+            </button>
+          </div>
+
+          {/* Separador visual */}
+          <div className="flex items-center my-4">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="px-3 text-xs font-medium text-gray-400 uppercase tracking-wide">
+              o continúa con
+            </span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+
+          {/* Botón de login con Google (OAuth 2.0 Authorization Code Flow) */}
+          <div>
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="w-full flex items-center justify-center gap-2 min-h-[40px] px-4 py-2 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#29A2A1]/40 transition-all duration-200"
+            >
+              <span className="text-lg">G</span>
+              <span>Continuar con Google</span>
             </button>
           </div>
 
